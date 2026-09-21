@@ -287,19 +287,24 @@ label.f textarea{min-height:150px;resize:vertical;font-family:"IBM Plex Mono",mo
   <div class="dlg-in">
     <form id="signinForm">
       <h3>Sign in</h3>
-      <p class="hint">We'll email you a link. Open it on this phone or computer and you're in — no password.</p>
+      <p class="hint">We'll email you a short code to type in here. No password needed.</p>
       <p class="err" id="siErr"></p>
       <label class="f"><span>Email</span><input id="si_email" type="email" required autocomplete="email"></label>
       <div class="dlg-foot">
         <button type="button" class="btn ghost" id="siCancel">Cancel</button>
-        <button type="submit" class="btn" id="siSend">Email me a link</button>
+        <button type="submit" class="btn" id="siSend">Email me a code</button>
       </div>
     </form>
-    <div id="siSent" hidden>
+    <form id="siSent" hidden>
       <h3>Check your email</h3>
-      <p class="hint">We sent a sign-in link to <strong id="siSentTo"></strong>. It can take a minute, and sometimes lands in spam.</p>
-      <div class="dlg-foot"><button type="button" class="btn" id="siDone">Done</button></div>
-    </div>
+      <p class="hint">We sent a code to <strong id="siSentTo"></strong>. It can take a minute, and sometimes lands in spam.</p>
+      <p class="err" id="siCodeErr"></p>
+      <label class="f"><span>Code from the email</span><input id="si_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required></label>
+      <div class="dlg-foot">
+        <button type="button" class="btn ghost" id="siDone">Cancel</button>
+        <button type="submit" class="btn" id="siVerify">Sign in</button>
+      </div>
+    </form>
   </div>
 </dialog>
 
@@ -502,7 +507,7 @@ function renderChart(text, steps){
 // Supabase dashboard -> Project Settings -> API. Paste both values here.
 // The anon key is meant to be public; the database rules decide who can write.
 var SUPABASE_URL = "https://hckwnukbrlyyfrhlszjf.supabase.co";
-  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhja3dudWticmx5eWZyaGxzempmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzY5NjMsImV4cCI6MjEwNTU1Mjk2M30.ig9S9qHiXHYpD2nYAOssbXEMgxvLO86A2KIhcogcEiw";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhja3dudWticmx5eWZyaGxzempmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzY5NjMsImV4cCI6MjEwNTU1Mjk2M30.ig9S9qHiXHYpD2nYAOssbXEMgxvLO86A2KIhcogcEiw";
 
 /* ============================ storage (Supabase) ============================ */
 var sb = null, session = null, isMember = false, myName = "";
@@ -603,20 +608,34 @@ el("signinForm").addEventListener("submit", async function(ev){
   var email = el("si_email").value.trim();
   if(!email){ el("siErr").textContent = "Enter your email."; return; }
   el("siSend").disabled = true;
-  var r = await sb.auth.signInWithOtp({
-    email: email,
-    options: { emailRedirectTo: location.origin + location.pathname }
-  });
+  var r = await sb.auth.signInWithOtp({ email: email });
   el("siSend").disabled = false;
   if(r.error){
     el("siErr").textContent = /rate/i.test(r.error.message)
-      ? "Too many links sent recently. Wait a few minutes and try again."
+      ? "Too many codes sent recently. Wait a few minutes and try again."
       : r.error.message;
     return;
   }
   el("signinForm").hidden = true;
   el("siSent").hidden = false;
   el("siSentTo").textContent = email;
+  el("siCodeErr").textContent = "";
+  el("si_code").value = "";
+  setTimeout(function(){ el("si_code").focus(); }, 30);
+});
+el("siSent").addEventListener("submit", async function(ev){
+  ev.preventDefault();
+  var code = el("si_code").value.replace(/\s/g, "");
+  if(!code){ el("siCodeErr").textContent = "Enter the code from the email."; return; }
+  el("siVerify").disabled = true;
+  var r = await sb.auth.verifyOtp({ email: el("si_email").value.trim(), token: code, type: "email" });
+  el("siVerify").disabled = false;
+  if(r.error){
+    el("siCodeErr").textContent = "That code didn't work. Check it, or send a new one if it's more than an hour old.";
+    return;
+  }
+  el("signin").close();
+  refreshAuth();
 });
 
 el("namerForm").addEventListener("submit", async function(ev){
