@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Choir Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light dark;
+  --cloth:#14332B;
+  --cloth-line:#2B5546;
+  --cloth-ink:#EDE6D4;
+  --cloth-dim:#9FB5AA;
+  --page:#F2EEE3;
+  --card:#FBF8EF;
+  --ink:#17201C;
+  --muted:#6C7A72;
+  --rule:#DDD5C3;
+  --gilt:#B08A3E;
+  --entrance:#8E2F3E;
+  --communion:#3C6B58;
+  --ending:#95662A;
+  --focus:#8E2F3E;
+  --shadow: 0 1px 0 rgba(23,32,28,.06);
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --cloth:#0C1D19;
+    --cloth-line:#21443A;
+    --cloth-ink:#E7E0CF;
+    --cloth-dim:#8D9F96;
+    --page:#131A17;
+    --card:#1A2320;
+    --ink:#E9E3D3;
+    --muted:#96A69C;
+    --rule:#2A342E;
+    --gilt:#C9A559;
+    --entrance:#D2707D;
+    --communion:#6FAF93;
+    --ending:#D2A055;
+    --focus:#D2707D;
+    --shadow: 0 1px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --cloth:#0C1D19; --cloth-line:#21443A; --cloth-ink:#E7E0CF; --cloth-dim:#8D9F96;
+  --page:#131A17; --card:#1A2320; --ink:#E9E3D3; --muted:#96A69C; --rule:#2A342E;
+  --gilt:#C9A559; --entrance:#D2707D; --communion:#6FAF93; --ending:#D2A055;
+  --focus:#D2707D; --shadow: 0 1px 0 rgba(0,0,0,.35);
+}
+
+html{scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--page);
+  color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:16px;
+  line-height:1.5;
+}
+img{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+
+/* ---------- cloth header ---------- */
+.cover{
+  background:var(--cloth);
+  color:var(--cloth-ink);
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom:1px solid var(--cloth-line);
+}
+.cover-in{max-width:780px;margin:0 auto;padding:18px 20px 20px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.brand h1{
+  margin:0;
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-weight:500;
+  font-size:26px;
+  letter-spacing:.005em;
+  color:var(--gilt);
+}
+.tally{font-size:13px;color:var(--cloth-dim);text-align:right;flex:0 0 auto}
+
+/* hymn board */
+.board{margin-top:18px;display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}
+@media (max-width:620px){.board{grid-template-columns:1fr}}
+.slot{
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--cloth-line);
+  border-radius:2px;
+  padding:11px 12px 12px;
+  text-align:left;
+  width:100%;
+  cursor:pointer;
+  display:block;
+  min-height:96px;
+}
+.slot:hover{background:rgba(255,255,255,.08)}
+.slot[disabled]{cursor:default;opacity:.75}
+.slot-name{font-size:11.5px;letter-spacing:.09em;color:var(--cloth-dim);font-weight:500}
+.slot-title{
+  font-family:"Newsreader",Georgia,serif;font-size:19px;line-height:1.25;
+  color:var(--cloth-ink);margin-top:6px;font-weight:500;
+}
+.slot-meta{font-size:12.5px;color:var(--cloth-dim);margin-top:5px}
+.board-foot{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.linkish{
+  background:none;border:0;padding:4px 0;cursor:pointer;
+  color:var(--gilt);font-size:13px;text-decoration:underline;text-underline-offset:3px;
+}
+
+/* ---------- controls ---------- */
+.wrap{max-width:780px;margin:0 auto;padding:0 20px 72px}
+.controls{position:sticky;top:0;z-index:20;background:var(--page);padding:14px 0 10px;border-bottom:1px solid var(--rule)}
+.searchrow{display:flex;gap:8px}
+.search{
+  flex:1;background:var(--card);border:1px solid var(--rule);border-radius:2px;
+  padding:10px 12px;min-width:0;
+}
+.btn{
+  background:var(--cloth);color:var(--cloth-ink);border:1px solid var(--cloth);
+  border-radius:2px;padding:10px 14px;cursor:pointer;font-weight:500;white-space:nowrap;
+}
+.btn:hover{background:var(--cloth-line)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{background:var(--card)}
+.btn.warn{background:transparent;color:var(--entrance);border-color:var(--rule)}
+.filters{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.chip{
+  background:transparent;border:1px solid var(--rule);border-radius:999px;
+  padding:5px 12px;font-size:13.5px;cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--cloth);color:var(--cloth-ink);border-color:var(--cloth)}
+.spacer{flex:1}
+select.sort{background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:6px 8px;font-size:13.5px}
+
+/* ---------- list ---------- */
+.list{margin:0;padding:0;list-style:none}
+.song{
+  display:flex;gap:0;align-items:stretch;
+  border-bottom:1px solid var(--rule);
+}
+.ribbon{flex:0 0 5px;background:var(--muted)}
+.song.t-entrance .ribbon{background:var(--entrance)}
+.song.t-communion .ribbon{background:var(--communion)}
+.song.t-ending .ribbon{background:var(--ending)}
+.song-btn{
+  flex:1;background:none;border:0;text-align:left;padding:14px 4px 14px 14px;cursor:pointer;
+  display:flex;gap:12px;align-items:flex-start;min-width:0;
+}
+.song-btn:hover{background:var(--card)}
+.song-main{flex:1;min-width:0}
+.song-title{font-family:"Newsreader",Georgia,serif;font-size:19px;line-height:1.3;font-weight:500}
+.song-sub{font-size:13.5px;color:var(--muted);margin-top:3px}
+.song-slot{font-weight:500}
+.t-entrance .song-slot{color:var(--entrance)}
+.t-communion .song-slot{color:var(--communion)}
+.t-ending .song-slot{color:var(--ending)}
+.song-right{flex:0 0 auto;text-align:right;padding-top:2px}
+.stars{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;letter-spacing:.06em;color:var(--gilt);white-space:nowrap}
+.stars .off{color:var(--rule)}
+.score{font-size:12px;color:var(--muted);margin-top:2px}
+.resting{color:var(--muted)}
+.empty{padding:48px 4px;color:var(--muted);max-width:44ch}
+.empty p{margin:0 0 14px}
+
+/* ---------- detail ---------- */
+.back{background:none;border:0;padding:14px 0 8px;cursor:pointer;color:var(--muted);font-size:14px}
+.back:hover{color:var(--ink)}
+.tube{position:relative;aspect-ratio:16/9;background:var(--card);border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.tube .fallback{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:24px;text-align:center;color:var(--muted);font-size:14px;
+}
+.tube iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.hero{margin-top:18px}
+.hero h2{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:clamp(27px,6.4vw,38px);line-height:1.12;margin:0}
+.hero .byline{color:var(--muted);margin-top:7px;font-size:15px}
+.hero .verdict{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.hero .verdict .stars{font-size:16px}
+.status{
+  margin-top:14px;padding:11px 13px;border-left:5px solid var(--rule);background:var(--card);
+  font-size:14px;border-radius:0 2px 2px 0;
+}
+.status.ready{border-left-color:var(--communion)}
+.status.resting{border-left-color:var(--ending)}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.actions input[type=date]{background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:9px 10px}
+.sect{margin-top:34px;border-top:1px solid var(--rule);padding-top:18px}
+.sect h3{
+  font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:20px;margin:0 0 12px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.transpose{display:inline-flex;gap:4px;align-items:center;font-family:"Archivo",sans-serif;font-size:13px;color:var(--muted);font-weight:400}
+.tbtn{border:1px solid var(--rule);background:var(--card);border-radius:2px;width:28px;height:28px;cursor:pointer;line-height:1}
+.chart{
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13.5px;line-height:1.55;white-space:pre;overflow-x:auto;
+  background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:16px;
+  -webkit-overflow-scrolling:touch;
+}
+.chart .ch{color:var(--entrance);font-weight:600}
+.chart .sec{color:var(--muted);font-style:italic}
+.note{color:var(--muted);font-size:14px;max-width:62ch}
+
+/* reviews */
+.mine{background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:14px}
+.starpick{display:flex;gap:2px}
+.starpick button{
+  background:none;border:0;cursor:pointer;font-size:26px;line-height:1;padding:2px 3px;color:var(--rule);
+  font-family:"IBM Plex Mono",monospace;
+}
+.starpick button.on{color:var(--gilt)}
+.mine textarea{
+  width:100%;margin-top:10px;background:transparent;border:1px solid var(--rule);border-radius:2px;
+  padding:9px 10px;resize:vertical;min-height:62px;
+}
+.reviews{list-style:none;margin:16px 0 0;padding:0}
+.reviews li{padding:12px 0;border-top:1px solid var(--rule)}
+.rev-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.rev-who{font-weight:500;font-size:14.5px}
+.rev-body{margin-top:4px;font-size:14.5px;max-width:64ch}
+
+/* ---------- dialog ---------- */
+dialog{
+  border:1px solid var(--rule);border-radius:3px;background:var(--card);color:var(--ink);
+  padding:0;width:min(620px,calc(100vw - 28px));max-height:86vh;
+}
+dialog::backdrop{background:rgba(12,24,20,.55)}
+.dlg-in{padding:20px;overflow:auto;max-height:86vh}
+.dlg-in h3{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:22px;margin:0 0 4px}
+.dlg-in p.hint{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:52ch}
+label.f{display:block;margin-bottom:12px}
+label.f > span{display:block;font-size:13.5px;color:var(--muted);margin-bottom:4px}
+label.f input, label.f select, label.f textarea{
+  width:100%;background:var(--page);border:1px solid var(--rule);border-radius:2px;padding:9px 10px;
+}
+label.f textarea{min-height:150px;resize:vertical;font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+.dlg-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+.dlg-foot .left{margin-right:auto}
+.err{color:var(--entrance);font-size:13.5px;margin:0 0 10px;min-height:1.2em}
+
+.acct{font-size:13px;color:var(--cloth-dim)}
+.acct .linkish{font-size:13px}
+.acct-who{margin-right:6px}
+.board-foot .spacer{flex:1}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  background:var(--cloth);color:var(--cloth-ink);padding:10px 16px;border-radius:2px;
+  font-size:14px;z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:calc(100vw - 32px);
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="cover-in">
+    <div class="brand">
+      <h1>Choir Book</h1>
+      <div class="tally" id="tally"></div>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="board-foot">
+      <button class="linkish" id="reroll">Suggest a different set</button>
+      <span class="spacer"></span>
+      <div class="acct" id="acct"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<dialog id="signin">
+  <div class="dlg-in">
+    <form id="signinForm">
+      <h3>Sign in</h3>
+      <p class="hint">We'll email you a link. Open it on this phone or computer and you're in — no password.</p>
+      <p class="err" id="siErr"></p>
+      <label class="f"><span>Email</span><input id="si_email" type="email" required autocomplete="email"></label>
+      <div class="dlg-foot">
+        <button type="button" class="btn ghost" id="siCancel">Cancel</button>
+        <button type="submit" class="btn" id="siSend">Email me a link</button>
+      </div>
+    </form>
+    <div id="siSent" hidden>
+      <h3>Check your email</h3>
+      <p class="hint">We sent a sign-in link to <strong id="siSentTo"></strong>. It can take a minute, and sometimes lands in spam.</p>
+      <div class="dlg-foot"><button type="button" class="btn" id="siDone">Done</button></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="namer">
+  <form class="dlg-in" id="namerForm">
+    <h3>What should the choir call you?</h3>
+    <p class="hint">This shows next to your reviews.</p>
+    <label class="f"><span>Name</span><input id="nm_name" type="text" maxlength="40" required autocomplete="name"></label>
+    <div class="dlg-foot"><button type="submit" class="btn">Save name</button></div>
+  </form>
+</dialog>
+
+<dialog id="editor">
+  <form method="dialog" class="dlg-in" id="editorForm">
+    <h3 id="edTitle">Add a song</h3>
+    <p class="hint" id="edHint">Paste the YouTube link you rehearse from. Everything else you can fill in later.</p>
+    <p class="err" id="edErr"></p>
+    <label class="f"><span>YouTube link</span><input id="f_video" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off"></label>
+    <label class="f"><span>Title</span><input id="f_title" type="text" required autocomplete="off"></label>
+    <div class="row2">
+      <label class="f"><span>Composer or artist</span><input id="f_artist" type="text" autocomplete="off"></label>
+      <label class="f"><span>Key we sing it in</span><input id="f_key" type="text" placeholder="D" autocomplete="off"></label>
+    </div>
+    <label class="f"><span>Where it goes in the Mass</span>
+      <select id="f_type">
+        <option value="entrance">Entrance</option>
+        <option value="communion">Communion</option>
+        <option value="ending">Ending</option>
+      </select>
+    </label>
+    <label class="f"><span>Chords and lyrics</span>
+      <textarea id="f_chart" spellcheck="false" placeholder="Paste chords above the words, or use [D]bracket style."></textarea>
+    </label>
+    <label class="f"><span>Notes for the choir</span><input id="f_notes" type="text" placeholder="Cantor starts a cappella" autocomplete="off"></label>
+    <div class="dlg-foot">
+      <button type="button" class="btn warn left" id="edDelete" hidden>Delete song</button>
+      <button type="button" class="btn ghost" id="edCancel">Cancel</button>
+      <button type="submit" class="btn" id="edSave">Save song</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================ state ============================ */
+var songs = {};            // id -> song
+var ratings = {};          // ratingId -> {songId, uid, stars, comment, at}
+var names = {};            // uid -> display name
+var uid = null;
+var userCap = null;
+var readOnly = true;
+var backend = null;
+var loaded = {songs:false, ratings:false};
+var view = {name:"list", id:null};
+var q = "", typeFilter = "all", readyOnly = false, sortBy = "rating";
+var boardIdx = 0, transpose = 0;
+var REST_DAYS = 21;
+var TYPES = ["entrance","communion","ending"];
+
+/* ============================ helpers ============================ */
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+}); }
+function newId(){ return "s" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function safeSeg(s){ return String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g,"_").slice(0,180); }
+function todayISO(){
+  var d = new Date(), p = function(n){ return (n<10?"0":"")+n; };
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+}
+function daysBetween(iso){
+  if(!iso) return null;
+  var then = new Date(iso + (iso.length===10 ? "T12:00:00" : ""));
+  if(isNaN(then)) return null;
+  return Math.floor((Date.now() - then.getTime()) / 86400000);
+}
+function relDays(d){
+  if(d === null) return "";
+  if(d <= 0) return "today";
+  if(d === 1) return "yesterday";
+  if(d < 14) return d + " days ago";
+  if(d < 60) return Math.round(d/7) + " weeks ago";
+  return Math.round(d/30) + " months ago";
+}
+function lastPlay(s){ return (s.plays && s.plays.length) ? s.plays[0] : null; }
+function restState(s){
+  var d = daysBetween(lastPlay(s));
+  if(d === null) return {ready:true, days:null, left:0};
+  return {ready: d >= REST_DAYS, days:d, left: Math.max(0, REST_DAYS - d)};
+}
+function songRatings(id){
+  var out = [];
+  for(var k in ratings){ if(ratings[k].songId === id && ratings[k].stars) out.push(ratings[k]); }
+  return out;
+}
+function avg(id){
+  var rs = songRatings(id);
+  if(!rs.length) return null;
+  var t = 0; for(var i=0;i<rs.length;i++) t += rs[i].stars;
+  return t / rs.length;
+}
+function starRow(n){
+  if(n === null) return '<span class="stars off">\u2605\u2605\u2605\u2605\u2605</span>';
+  var full = Math.round(n), out = "";
+  for(var i=1;i<=5;i++) out += i<=full ? "\u2605" : '<span class="off">\u2605</span>';
+  return '<span class="stars">'+out+'</span>';
+}
+function toast(msg){
+  var t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; t.setAttribute("role","status");
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2600);
+}
+function videoId(url){
+  if(!url) return "";
+  var s = String(url).trim();
+  var m = s.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,20})/);
+  if(m) return m[1];
+  if(/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  return "";
+}
+
+/* ============================ chord chart ============================ */
+var SHARPS = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+var FLATS  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+var CHORD_RE = /^([A-G](?:#|b)?)((?:maj|min|sus|dim|aug|add|m|M)?[0-9#b+\-()/A-G]*)$/;
+
+function isChordToken(t){
+  if(!t) return false;
+  if(t === "|" || t === "||" || t === "%" || /^x\d+$/i.test(t) || /^\(\d+x\)$/i.test(t)) return true;
+  return CHORD_RE.test(t) && /^[A-G]/.test(t);
+}
+function isChordLine(line){
+  var toks = line.trim().split(/\s+/);
+  if(!toks.length || !line.trim()) return false;
+  var real = 0;
+  for(var i=0;i<toks.length;i++){
+    if(!isChordToken(toks[i])) return false;
+    if(/^[A-G]/.test(toks[i])) real++;
+  }
+  return real > 0;
+}
+function isSectionLine(line){
+  return /^\s*[\[(]?\s*(verse|chorus|bridge|refrain|intro|outro|tag|pre[- ]?chorus|coda|interlude|ending|instrumental)\b/i.test(line);
+}
+function shiftChord(tok, steps){
+  if(steps === 0) return tok;
+  return tok.replace(/([A-G])(#|b)?/g, function(m0, letter, acc){
+    var name = letter + (acc || "");
+    var i = SHARPS.indexOf(name);
+    if(i < 0) i = FLATS.indexOf(name);
+    if(i < 0) return m0;
+    var j = ((i + steps) % 12 + 12) % 12;
+    var useFlat = acc === "b";
+    return useFlat ? FLATS[j] : SHARPS[j];
+  });
+}
+function expandBrackets(line){
+  if(!/\[[^\]]*\]/.test(line)) return null;
+  var chords = "", lyrics = "", re = /\[([^\]]*)\]|([^\[]+)/g, m;
+  while((m = re.exec(line))){
+    if(m[1] !== undefined){
+      if(chords.length > lyrics.length) chords += " ";
+      while(chords.length < lyrics.length) chords += " ";
+      chords += m[1];
+    } else { lyrics += m[2]; }
+  }
+  return [chords, lyrics];
+}
+function renderChart(text, steps){
+  if(!text || !text.trim()) return "";
+  var raw = text.replace(/\r/g,"").split("\n");
+  var lines = [];
+  for(var i=0;i<raw.length;i++){
+    var pair = expandBrackets(raw[i]);
+    if(pair){ lines.push(pair[0]); lines.push(pair[1]); }
+    else lines.push(raw[i]);
+  }
+  var out = [];
+  for(var j=0;j<lines.length;j++){
+    var L = lines[j];
+    if(isSectionLine(L) && !isChordLine(L)){
+      out.push('<span class="sec">'+esc(L)+"</span>");
+    } else if(isChordLine(L)){
+      var shifted = L.replace(/[^\s|%()]+/g, function(t){
+        return isChordToken(t) && /^[A-G]/.test(t) ? shiftChord(t, steps) : t;
+      });
+      out.push('<span class="ch">'+esc(shifted)+"</span>");
+    } else {
+      out.push(esc(L));
+    }
+  }
+  return out.join("\n");
+}
+
+/* ============================ config ============================ */
+// Supabase dashboard -> Project Settings -> API. Paste both values here.
+// The anon key is meant to be public; the database rules decide who can write.
+var SUPABASE_URL = "hckwnukbrlyyfrhlszjf.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhja3dudWticmx5eWZyaGxzempmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzY5NjMsImV4cCI6MjEwNTU1Mjk2M30.ig9S9qHiXHYpD2nYAOssbXEMgxvLO86A2KIhcogcEiw";
+
+/* ============================ storage (Supabase) ============================ */
+var sb = null, session = null, isMember = false, myName = "";
+
+function configured(){ return /^https:\/\//.test(SUPABASE_URL) && SUPABASE_ANON_KEY.length > 30; }
+
+function rowToSong(r){
+  return {
+    title: r.title, artist: r.artist || "", key: r.song_key || "", type: r.slot,
+    video: r.video || "", chart: r.chart || "", notes: r.notes || "",
+    plays: (r.plays || []).slice().sort().reverse(), addedAt: r.added_at
+  };
+}
+function songToRow(id, s){
+  return {
+    id: id, title: s.title, artist: s.artist || "", song_key: s.key || "", slot: s.type,
+    video: s.video || "", chart: s.chart || "", notes: s.notes || "", plays: s.plays || []
+  };
+}
+
+async function loadSongs(){
+  var r = await sb.from("songs").select("*");
+  if(r.error){ console.warn(r.error); toast("Couldn't load songs. Check the setup."); return; }
+  var next = {};
+  r.data.forEach(function(row){ next[row.id] = rowToSong(row); });
+  songs = next; loaded.songs = true; render();
+}
+async function loadRatings(){
+  var r = await sb.from("ratings").select("*");
+  if(r.error){ console.warn(r.error); return; }
+  var next = {};
+  r.data.forEach(function(row){
+    next[row.song_id + "~" + row.user_id] = {
+      songId: row.song_id, uid: row.user_id, stars: row.stars,
+      comment: row.comment || "", at: row.updated_at
+    };
+  });
+  ratings = next; loaded.ratings = true; render();
+}
+async function loadNames(){
+  var r = await sb.from("profiles").select("user_id, display_name");
+  if(r.error) return;
+  r.data.forEach(function(p){ names[p.user_id] = p.display_name || "Someone in the choir"; });
+  render();
+}
+var refetchTimer = null;
+function scheduleRefetch(){
+  clearTimeout(refetchTimer);
+  refetchTimer = setTimeout(function(){ loadSongs(); loadRatings(); loadNames(); }, 300);
+}
+
+var SupaBackend = {
+  saveSong: async function(id, data){
+    var r = await sb.from("songs").upsert(songToRow(id, data));
+    if(r.error) throw r.error;
+    songs[id] = data; render();
+  },
+  removeSong: async function(id){
+    var r = await sb.from("songs").delete().eq("id", id);
+    if(r.error) throw r.error;
+    delete songs[id];
+    for(var k in ratings){ if(ratings[k].songId === id) delete ratings[k]; }
+    render();
+  },
+  saveRating: async function(songId, data){
+    var r = await sb.from("ratings").upsert({
+      song_id: songId, user_id: uid, stars: data.stars,
+      comment: data.comment, updated_at: data.at
+    }, {onConflict: "song_id,user_id"});
+    if(r.error) throw r.error;
+    ratings[songId + "~" + uid] = {songId: songId, uid: uid, stars: data.stars, comment: data.comment, at: data.at};
+    render();
+  }
+};
+
+function handleWriteFailure(err){
+  console.warn(err);
+  if(!session){ toast("Sign in first."); openSignin(); return; }
+  if(err && (err.code === "42501" || /row-level security/i.test(err.message || ""))){
+    toast("Your email isn't on the choir list yet.");
+    return;
+  }
+  toast("That didn't save. Check your connection and try again.");
+}
+
+/* ============================ accounts ============================ */
+function openSignin(){
+  el("siErr").textContent = "";
+  el("siSent").hidden = true;
+  el("signinForm").hidden = false;
+  el("signin").showModal();
+  setTimeout(function(){ el("si_email").focus(); }, 30);
+}
+el("siCancel").addEventListener("click", function(){ el("signin").close(); });
+el("siDone").addEventListener("click", function(){ el("signin").close(); });
+el("signinForm").addEventListener("submit", async function(ev){
+  ev.preventDefault();
+  var email = el("si_email").value.trim();
+  if(!email){ el("siErr").textContent = "Enter your email."; return; }
+  el("siSend").disabled = true;
+  var r = await sb.auth.signInWithOtp({
+    email: email,
+    options: { emailRedirectTo: location.origin + location.pathname }
+  });
+  el("siSend").disabled = false;
+  if(r.error){
+    el("siErr").textContent = /rate/i.test(r.error.message)
+      ? "Too many links sent recently. Wait a few minutes and try again."
+      : r.error.message;
+    return;
+  }
+  el("signinForm").hidden = true;
+  el("siSent").hidden = false;
+  el("siSentTo").textContent = email;
+});
+
+el("namerForm").addEventListener("submit", async function(ev){
+  ev.preventDefault();
+  var n = el("nm_name").value.trim().slice(0, 40);
+  if(!n) return;
+  var r = await sb.from("profiles").upsert({user_id: uid, display_name: n});
+  if(r.error){ toast("Couldn't save your name."); console.warn(r.error); return; }
+  myName = n; names[uid] = n;
+  el("namer").close(); renderAccount(); render();
+});
+
+async function refreshAuth(){
+  var s = await sb.auth.getSession();
+  session = s.data.session;
+  uid = session ? session.user.id : null;
+  isMember = false; myName = "";
+  if(session){
+    var m = await sb.rpc("is_member");
+    isMember = !m.error && m.data === true;
+    var p = await sb.from("profiles").select("display_name").eq("user_id", uid).maybeSingle();
+    myName = (p.data && p.data.display_name) || "";
+    if(myName) names[uid] = myName;
+    if(isMember && !myName && !el("namer").open){
+      el("nm_name").value = "";
+      el("namer").showModal();
+    }
+  }
+  readOnly = !(session && isMember);
+  renderAccount(); render();
+}
+
+function renderAccount(){
+  var host = el("acct");
+  if(!sb){ host.innerHTML = ""; return; }
+  if(!session){
+    host.innerHTML = '<button class="linkish" id="acctIn">Sign in to add songs and reviews</button>';
+    el("acctIn").addEventListener("click", openSignin);
+    return;
+  }
+  var who = myName || session.user.email;
+  host.innerHTML = (isMember
+      ? '<span class="acct-who">Signed in as ' + esc(who) + '</span>'
+      : '<span class="acct-who">' + esc(session.user.email) + " isn\u2019t on the choir list yet</span>")
+    + ' <button class="linkish" id="acctOut">Sign out</button>';
+  el("acctOut").addEventListener("click", async function(){ await sb.auth.signOut(); refreshAuth(); });
+}
+
+/* ============================ names ============================ */
+function resolveNames(){ /* names come from the profiles table */ }
+function nameOf(id){
+  if(id === uid) return "You";
+  return names[id] || "Someone in the choir";
+}
+
+/* ============================ suggestions ============================ */
+function candidates(type){
+  var out = [];
+  for(var id in songs){
+    var s = songs[id];
+    if(s.type !== type) continue;
+    if(!restState(s).ready) continue;
+    out.push({id:id, s:s, score: avg(id)});
+  }
+  out.sort(function(a,b){
+    var as = a.score === null ? -1 : a.score, bs = b.score === null ? -1 : b.score;
+    if(bs !== as) return bs - as;
+    var ad = daysBetween(lastPlay(a.s)), bd = daysBetween(lastPlay(b.s));
+    return (bd === null ? 9999 : bd) - (ad === null ? 9999 : ad);
+  });
+  return out;
+}
+function renderBoard(){
+  var host = el("board");
+  var html = "";
+  TYPES.forEach(function(t){
+    var c = candidates(t);
+    var pick = c.length ? c[boardIdx % c.length] : null;
+    var label = t.charAt(0).toUpperCase() + t.slice(1);
+    if(!pick){
+      html += '<button class="slot" disabled><span class="slot-name">'+label+'</span>'
+        + '<span class="slot-title" style="opacity:.6">\u2014</span>'
+        + '<span class="slot-meta">Nothing rested here yet</span></button>';
+    } else {
+      var d = daysBetween(lastPlay(pick.s));
+      var meta = d === null ? "Never sung" : "Last sung " + relDays(d);
+      var sc = pick.score === null ? "no reviews yet" : pick.score.toFixed(1) + " out of 5";
+      html += '<button class="slot" data-goto="'+esc(pick.id)+'">'
+        + '<span class="slot-name">'+label+'</span>'
+        + '<span class="slot-title">'+esc(pick.s.title)+'</span>'
+        + '<span class="slot-meta">'+esc(meta)+" \u00b7 "+esc(sc)+'</span></button>';
+    }
+  });
+  host.innerHTML = html;
+
+  var total = Object.keys(songs).length, ready = 0;
+  for(var id in songs){ if(restState(songs[id]).ready) ready++; }
+  el("tally").innerHTML = total
+    ? esc(total + (total===1?" song":" songs")) + "<br>" + esc(ready + " rested and ready")
+    : "";
+}
+
+/* ============================ list view ============================ */
+function visibleSongs(){
+  var arr = [];
+  var needle = q.trim().toLowerCase();
+  for(var id in songs){
+    var s = songs[id];
+    if(typeFilter !== "all" && s.type !== typeFilter) continue;
+    if(readyOnly && !restState(s).ready) continue;
+    if(needle){
+      var hay = (s.title+" "+(s.artist||"")+" "+(s.chart||"")+" "+(s.notes||"")).toLowerCase();
+      if(hay.indexOf(needle) === -1) continue;
+    }
+    arr.push({id:id, s:s});
+  }
+  arr.sort(function(a,b){
+    if(sortBy === "title") return a.s.title.localeCompare(b.s.title);
+    if(sortBy === "added") return String(b.s.addedAt||"").localeCompare(String(a.s.addedAt||""));
+    if(sortBy === "most") return ((b.s.plays||[]).length) - ((a.s.plays||[]).length);
+    if(sortBy === "rested"){
+      var ad = daysBetween(lastPlay(a.s)), bd = daysBetween(lastPlay(b.s));
+      return (bd === null ? 99999 : bd) - (ad === null ? 99999 : ad);
+    }
+    var av = avg(a.id), bv = avg(b.id);
+    return (bv === null ? -1 : bv) - (av === null ? -1 : av);
+  });
+  return arr;
+}
+
+function renderList(){
+  var main = el("main");
+  var items = visibleSongs();
+  var html = ''
+    + '<div class="controls">'
+    + '  <div class="searchrow">'
+    + '    <input class="search" id="q" type="search" placeholder="Search titles, composers, words" value="'+esc(q)+'" aria-label="Search songs">'
+    + (readOnly ? "" : '    <button class="btn" id="addBtn">Add song</button>')
+    + '  </div>'
+    + '  <div class="filters">'
+    + '    <button class="chip" data-type="all" aria-pressed="'+(typeFilter==="all")+'">All</button>'
+    + '    <button class="chip" data-type="entrance" aria-pressed="'+(typeFilter==="entrance")+'">Entrance</button>'
+    + '    <button class="chip" data-type="communion" aria-pressed="'+(typeFilter==="communion")+'">Communion</button>'
+    + '    <button class="chip" data-type="ending" aria-pressed="'+(typeFilter==="ending")+'">Ending</button>'
+    + '    <button class="chip" id="readyChip" aria-pressed="'+readyOnly+'">Rested 3+ weeks</button>'
+    + '    <span class="spacer"></span>'
+    + '    <select class="sort" id="sort" aria-label="Sort songs">'
+    + '      <option value="rating">Best loved</option>'
+    + '      <option value="rested">Longest rested</option>'
+    + '      <option value="added">Newest added</option>'
+    + '      <option value="most">Most sung</option>'
+    + '      <option value="title">A to Z</option>'
+    + '    </select>'
+    + '  </div>'
+    + '</div>';
+
+  if(!loaded.songs){
+    html += '<div class="empty"><p>Opening the book\u2026</p></div>';
+  } else if(!items.length){
+    html += Object.keys(songs).length
+      ? '<div class="empty"><p>Nothing matches that. Try a wider filter.</p></div>'
+      : '<div class="empty"><p>The book is empty.</p><p>Add the first song with the YouTube link you rehearse from, and the book starts tracking when you sang it and what everyone thought.</p>'
+        + (readOnly ? "" : '<button class="btn" id="addBtn2">Add the first song</button>') + '</div>';
+  } else {
+    html += '<ul class="list">';
+    items.forEach(function(it){
+      var s = it.s, r = restState(s), a = avg(it.id), n = songRatings(it.id).length;
+      var when = r.days === null
+        ? "never sung"
+        : (r.ready ? "sung " + relDays(r.days) : '<span class="resting">resting \u00b7 ready in ' + r.left + (r.left===1?" day":" days") + "</span>");
+      html += '<li class="song t-'+esc(s.type)+'">'
+        + '<span class="ribbon" aria-hidden="true"></span>'
+        + '<button class="song-btn" data-goto="'+esc(it.id)+'">'
+        + '  <span class="song-main">'
+        + '    <span class="song-title">'+esc(s.title)+'</span>'
+        + '    <span class="song-sub"><span class="song-slot">'+esc(s.type)+'</span>'
+        +        (s.artist ? " \u00b7 " + esc(s.artist) : "") + " \u00b7 " + when + '</span>'
+        + '  </span>'
+        + '  <span class="song-right">'+starRow(a)
+        + '    <span class="score">'+(n ? a.toFixed(1)+" \u00b7 "+n : "no reviews")+'</span>'
+        + '  </span>'
+        + '</button></li>';
+    });
+    html += "</ul>";
+  }
+
+  main.innerHTML = html;
+  el("sort").value = sortBy;
+
+  var qi = el("q");
+  qi.addEventListener("input", function(){
+    q = qi.value;
+    var pos = qi.selectionStart;
+    renderList();
+    var nq = el("q"); nq.focus(); try{ nq.setSelectionRange(pos,pos); }catch(e){}
+  });
+  el("sort").addEventListener("change", function(){ sortBy = this.value; renderList(); });
+  Array.prototype.forEach.call(main.querySelectorAll("[data-type]"), function(b){
+    b.addEventListener("click", function(){ typeFilter = b.getAttribute("data-type"); renderList(); });
+  });
+  el("readyChip").addEventListener("click", function(){ readyOnly = !readyOnly; renderList(); });
+  if(el("addBtn")) el("addBtn").addEventListener("click", function(){ openEditor(null); });
+  if(el("addBtn2")) el("addBtn2").addEventListener("click", function(){ openEditor(null); });
+}
+
+/* ============================ detail view ============================ */
+function renderDetail(id){
+  var main = el("main");
+  var s = songs[id];
+  if(!s){
+    main.innerHTML = '<button class="back" data-back>\u2190 Back to the book</button>'
+      + '<div class="empty"><p>That song is no longer in the book.</p></div>';
+    bindBack(); return;
+  }
+  var vid = videoId(s.video);
+  var r = restState(s), a = avg(id), rs = songRatings(id);
+  var mine = null;
+  for(var i=0;i<rs.length;i++){ if(rs[i].uid === uid) mine = rs[i]; }
+  var plays = s.plays || [];
+
+  var statusText, statusClass;
+  if(r.days === null){ statusText = "Never sung, as far as the book knows."; statusClass = "ready"; }
+  else if(r.ready){ statusText = "Sung " + relDays(r.days) + ". Rested long enough to bring back."; statusClass = "ready"; }
+  else { statusText = "Sung " + relDays(r.days) + ". Ready again in " + r.left + (r.left===1?" day":" days") + "."; statusClass = "resting"; }
+  if(plays.length) statusText += " Sung " + plays.length + (plays.length===1 ? " time" : " times") + " in all.";
+
+  var html = '<button class="back" data-back>\u2190 Back to the book</button>';
+
+  if(vid){
+    html += '<div class="tube"><div class="fallback">If the video stays blank, open it on YouTube below.</div>'
+      + '<iframe src="https://www.youtube-nocookie.com/embed/'+esc(vid)+'" title="'+esc(s.title)+' on YouTube" '
+      + 'allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>';
+  }
+
+  html += '<div class="hero">'
+    + '<h2>'+esc(s.title)+'</h2>'
+    + '<div class="byline">'+esc(s.artist || "Composer not noted")
+    + (s.key ? " \u00b7 we sing it in " + esc(s.key) : "")
+    + ' \u00b7 <span class="song-slot t-'+esc(s.type)+'">'+esc(s.type)+'</span></div>'
+    + '<div class="verdict">'+starRow(a)
+    + '<span class="score">'+(rs.length ? a.toFixed(1)+" from "+rs.length+(rs.length===1?" review":" reviews") : "No reviews yet")+'</span>'
+    + (vid ? ' \u00b7 <a href="https://youtu.be/'+esc(vid)+'" target="_blank" rel="noopener">Open on YouTube</a>' : "")
+    + '</div>'
+    + '<div class="status '+statusClass+'">'+esc(statusText)+'</div>';
+
+  if(!readOnly){
+    html += '<div class="actions">'
+      + '<input type="date" id="playDate" value="'+todayISO()+'" max="'+todayISO()+'" aria-label="Date we sang it">'
+      + '<button class="btn" id="logPlay">Mark as sung</button>'
+      + (plays.length ? '<button class="btn ghost" id="undoPlay">Undo last</button>' : "")
+      + '<button class="btn ghost" id="editSong">Edit</button>'
+      + '</div>';
+  }
+  if(s.notes) html += '<p class="note" style="margin-top:14px">'+esc(s.notes)+'</p>';
+  html += "</div>";
+
+  html += '<section class="sect"><h3>Chords and lyrics'
+    + (s.chart && s.chart.trim() ? '<span class="transpose"><button class="tbtn" id="tdown" aria-label="Transpose down">\u2212</button>'
+        + '<span id="tval">'+(transpose===0 ? "as written" : (transpose>0?"+":"")+transpose)+'</span>'
+        + '<button class="tbtn" id="tup" aria-label="Transpose up">+</button></span>' : "")
+    + "</h3>";
+  if(s.chart && s.chart.trim()){
+    html += '<div class="chart">'+renderChart(s.chart, transpose)+"</div>";
+  } else {
+    html += '<p class="note">No chart yet. Open Edit and paste the chords and words your group already uses \u2014 chord lines above the lyrics, or bracket style like [D]Here I am.</p>';
+  }
+  html += "</section>";
+
+  html += '<section class="sect"><h3>What the choir says</h3>';
+  if(!readOnly){
+    var cur = mine ? mine.stars : 0;
+    html += '<div class="mine"><div class="starpick" id="starpick" role="group" aria-label="Your rating">';
+    for(var k=1;k<=5;k++){
+      html += '<button type="button" data-star="'+k+'" class="'+(k<=cur?"on":"")+'" aria-label="'+k+' out of 5">\u2605</button>';
+    }
+    html += '</div><textarea id="myComment" placeholder="How did it land? Too high, too long, everybody sang?">'
+      + esc(mine ? (mine.comment||"") : "") + "</textarea>"
+      + '<div class="dlg-foot" style="justify-content:flex-start;margin-top:10px"><button class="btn" id="saveReview">Save my review</button></div></div>';
+  }
+  var others = rs.filter(function(x){ return x.uid !== uid && (x.comment || x.stars); });
+  if(others.length){
+    html += '<ul class="reviews">';
+    others.sort(function(x,y){ return String(y.at||"").localeCompare(String(x.at||"")); });
+    others.forEach(function(x){
+      html += '<li><div class="rev-head"><span class="rev-who">'+esc(nameOf(x.uid))+"</span>"+starRow(x.stars)+"</div>"
+        + (x.comment ? '<div class="rev-body">'+esc(x.comment)+"</div>" : "") + "</li>";
+    });
+    html += "</ul>";
+    resolveNames(others.map(function(x){ return x.uid; }));
+  } else if(rs.length <= (mine?1:0)){
+    html += '<p class="note" style="margin-top:14px">Nobody else has weighed in yet.</p>';
+  }
+  html += "</section>";
+
+  main.innerHTML = html;
+  bindBack();
+
+  if(el("tup")) el("tup").addEventListener("click", function(){ transpose = Math.min(11, transpose+1); renderDetail(id); });
+  if(el("tdown")) el("tdown").addEventListener("click", function(){ transpose = Math.max(-11, transpose-1); renderDetail(id); });
+
+  if(el("logPlay")) el("logPlay").addEventListener("click", function(){
+    var d = el("playDate").value || todayISO();
+    var copy = JSON.parse(JSON.stringify(songs[id]));
+    copy.plays = (copy.plays || []).slice();
+    if(copy.plays.indexOf(d) === -1) copy.plays.unshift(d);
+    copy.plays.sort().reverse();
+    copy.plays = copy.plays.slice(0, 40);
+    backend.saveSong(id, copy).then(function(){ toast("Logged. It rests for three weeks."); }).catch(handleWriteFailure);
+  });
+  if(el("undoPlay")) el("undoPlay").addEventListener("click", function(){
+    var copy = JSON.parse(JSON.stringify(songs[id]));
+    copy.plays = (copy.plays || []).slice(1);
+    backend.saveSong(id, copy).then(function(){ toast("Last entry removed."); }).catch(handleWriteFailure);
+  });
+  if(el("editSong")) el("editSong").addEventListener("click", function(){ openEditor(id); });
+
+  if(el("starpick")){
+    var picked = mine ? mine.stars : 0;
+    Array.prototype.forEach.call(el("starpick").children, function(b){
+      b.addEventListener("click", function(){
+        picked = parseInt(b.getAttribute("data-star"), 10);
+        Array.prototype.forEach.call(el("starpick").children, function(x){
+          x.classList.toggle("on", parseInt(x.getAttribute("data-star"),10) <= picked);
+        });
+      });
+    });
+    el("saveReview").addEventListener("click", function(){
+      if(!picked){ toast("Pick a number of stars first."); return; }
+      backend.saveRating(id, {
+        songId: id, uid: uid || "anon", stars: picked,
+        comment: el("myComment").value.trim().slice(0, 600),
+        at: new Date().toISOString()
+      }).then(function(){ toast("Saved."); }).catch(handleWriteFailure);
+    });
+  }
+}
+function bindBack(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-back]"), function(b){
+    b.addEventListener("click", function(){ location.hash = ""; });
+  });
+}
+
+/* ============================ editor dialog ============================ */
+var editingId = null;
+function openEditor(id){
+  editingId = id;
+  var s = id ? songs[id] : null;
+  el("edTitle").textContent = s ? "Edit song" : "Add a song";
+  el("edHint").textContent = s
+    ? "Changes show up for everyone with the book."
+    : "Paste the YouTube link you rehearse from. Everything else you can fill in later.";
+  el("edErr").textContent = "";
+  el("f_video").value = s ? (s.video||"") : "";
+  el("f_title").value = s ? s.title : "";
+  el("f_artist").value = s ? (s.artist||"") : "";
+  el("f_key").value = s ? (s.key||"") : "";
+  el("f_type").value = s ? s.type : (typeFilter !== "all" ? typeFilter : "entrance");
+  el("f_chart").value = s ? (s.chart||"") : "";
+  el("f_notes").value = s ? (s.notes||"") : "";
+  el("edDelete").hidden = !s;
+  el("editor").showModal();
+  setTimeout(function(){ el(s ? "f_title" : "f_video").focus(); }, 30);
+}
+el("edCancel").addEventListener("click", function(){ el("editor").close(); });
+el("edDelete").addEventListener("click", function(){
+  if(!editingId) return;
+  var t = songs[editingId] ? songs[editingId].title : "this song";
+  if(!confirm("Remove \u201c" + t + "\u201d from the book? Its reviews and history go too.")) return;
+  var gone = editingId;
+  backend.removeSong(gone).then(function(){
+    el("editor").close();
+    if(view.name === "song" && view.id === gone) location.hash = "";
+    toast("Removed from the book.");
+  }).catch(handleWriteFailure);
+});
+el("editorForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var title = el("f_title").value.trim();
+  if(!title){ el("edErr").textContent = "A song needs a title."; return; }
+  var link = el("f_video").value.trim();
+  if(link && !videoId(link)){
+    el("edErr").textContent = "That doesn't look like a YouTube link. Check it, or leave it blank for now.";
+    return;
+  }
+  var id = editingId || newId();
+  var base = editingId && songs[id] ? JSON.parse(JSON.stringify(songs[id])) : {plays:[], addedAt:new Date().toISOString()};
+  base.title = title.slice(0,140);
+  base.artist = el("f_artist").value.trim().slice(0,120);
+  base.key = el("f_key").value.trim().slice(0,12);
+  base.type = el("f_type").value;
+  base.video = link;
+  base.chart = el("f_chart").value.slice(0, 40000);
+  base.notes = el("f_notes").value.trim().slice(0,300);
+  if(!base.plays) base.plays = [];
+  if(!base.addedAt) base.addedAt = new Date().toISOString();
+
+  backend.saveSong(id, base).then(function(){
+    el("editor").close();
+    toast(editingId ? "Saved." : "Added to the book.");
+    if(!editingId) location.hash = "#song/" + id;
+  }).catch(handleWriteFailure);
+});
+el("editor").addEventListener("close", function(){ editingId = null; });
+
+/* ============================ routing + render ============================ */
+function readHash(){
+  var h = location.hash.replace(/^#/, "");
+  var m = h.match(/^song\/(.+)$/);
+  if(m){ view = {name:"song", id:decodeURIComponent(m[1])}; }
+  else { view = {name:"list", id:null}; }
+}
+function render(){
+  renderBoard();
+  if(view.name === "song") renderDetail(view.id);
+  else renderList();
+}
+window.addEventListener("hashchange", function(){
+  var before = view.name + ":" + view.id;
+  readHash();
+  if(before !== view.name + ":" + view.id) transpose = 0;
+  render();
+  window.scrollTo(0,0);
+});
+document.addEventListener("click", function(ev){
+  var t = ev.target.closest ? ev.target.closest("[data-goto]") : null;
+  if(t){ location.hash = "#song/" + encodeURIComponent(t.getAttribute("data-goto")); }
+});
+el("reroll").addEventListener("click", function(){ boardIdx++; renderBoard(); });
+
+/* ============================ boot ============================ */
+readHash();
+render();
+
+(async function boot(){
+  if(!configured() || !window.supabase){
+    el("main").innerHTML = '<div class="empty"><p><strong>Almost there.</strong></p>'
+      + '<p>Open index.html and paste your Supabase project URL and anon key into the two lines near the top marked PASTE_YOUR\u2026, then reload.</p></div>';
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  backend = SupaBackend;
+
+  sb.auth.onAuthStateChange(function(evt){
+    if(/access_token=|error_description=/.test(location.hash)){
+      history.replaceState(null, "", location.pathname + location.search);
+      readHash();
+    }
+    // Defer: calling Supabase inside this callback can deadlock.
+    setTimeout(refreshAuth, 0);
+  });
+
+  await refreshAuth();
+  await Promise.all([loadSongs(), loadRatings(), loadNames()]);
+
+  sb.channel("choir-book")
+    .on("postgres_changes", {event: "*", schema: "public", table: "songs"}, scheduleRefetch)
+    .on("postgres_changes", {event: "*", schema: "public", table: "ratings"}, scheduleRefetch)
+    .subscribe();
+})();
+
+})();
+</script>
+</body>
+</html>
