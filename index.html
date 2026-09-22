@@ -149,10 +149,11 @@ select.sort{background:var(--card);border:1px solid var(--rule);border-radius:2p
   display:flex;gap:0;align-items:stretch;
   border-bottom:1px solid var(--rule);
 }
-.ribbon{flex:0 0 5px;background:var(--muted)}
-.song.t-entrance .ribbon{background:var(--entrance)}
-.song.t-communion .ribbon{background:var(--communion)}
-.song.t-ending .ribbon{background:var(--ending)}
+.ribbon{flex:0 0 5px;display:flex;flex-direction:column;background:var(--muted)}
+.rib{flex:1}
+.rib-entrance{background:var(--entrance)}
+.rib-communion{background:var(--communion)}
+.rib-ending{background:var(--ending)}
 .song-btn{
   flex:1;background:none;border:0;text-align:left;padding:14px 4px 14px 14px;cursor:pointer;
   display:flex;gap:12px;align-items:flex-start;min-width:0;
@@ -201,6 +202,9 @@ select.sort{background:var(--card);border:1px solid var(--rule);border-radius:2p
   display:flex;align-items:center;gap:12px;flex-wrap:wrap;
 }
 .transpose{display:inline-flex;gap:4px;align-items:center;font-family:"Archivo",sans-serif;font-size:13px;color:var(--muted);font-weight:400}
+.transpose .tlab{letter-spacing:.06em;font-size:12px;text-transform:uppercase}
+.keysel{background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:5px 6px;font-size:14px;font-weight:500;color:var(--ink)}
+.transpose .linkish{color:var(--muted);font-size:12.5px}
 .tbtn{border:1px solid var(--rule);background:var(--card);border-radius:2px;width:28px;height:28px;cursor:pointer;line-height:1}
 .chart{
   font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -245,6 +249,10 @@ label.f input, label.f select, label.f textarea{
   width:100%;background:var(--page);border:1px solid var(--rule);border-radius:2px;padding:9px 10px;
 }
 label.f textarea{min-height:150px;resize:vertical;font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.5}
+fieldset.slots{border:1px solid var(--rule);border-radius:2px;padding:10px 12px 12px;margin:0 0 12px;display:flex;gap:16px;flex-wrap:wrap}
+fieldset.slots legend{font-size:13.5px;color:var(--muted);padding:0 4px}
+label.cb{display:flex;align-items:center;gap:7px;font-size:15px;cursor:pointer}
+label.cb input{width:18px;height:18px;accent-color:var(--cloth)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:520px){.row2{grid-template-columns:1fr}}
 .dlg-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
@@ -328,13 +336,12 @@ label.f textarea{min-height:150px;resize:vertical;font-family:"IBM Plex Mono",mo
       <label class="f"><span>Composer or artist</span><input id="f_artist" type="text" autocomplete="off"></label>
       <label class="f"><span>Key we sing it in</span><input id="f_key" type="text" placeholder="D" autocomplete="off"></label>
     </div>
-    <label class="f"><span>Where it goes in the Mass</span>
-      <select id="f_type">
-        <option value="entrance">Entrance</option>
-        <option value="communion">Communion</option>
-        <option value="ending">Ending</option>
-      </select>
-    </label>
+    <fieldset class="f slots">
+      <legend>Where it can go in the Mass</legend>
+      <label class="cb"><input type="checkbox" id="f_entrance" value="entrance"> Entrance</label>
+      <label class="cb"><input type="checkbox" id="f_communion" value="communion"> Communion</label>
+      <label class="cb"><input type="checkbox" id="f_ending" value="ending"> Ending</label>
+    </fieldset>
     <label class="f"><span>Chords and lyrics</span>
       <textarea id="f_chart" spellcheck="false" placeholder="Paste chords above the words, or use [D]bracket style."></textarea>
     </label>
@@ -477,6 +484,44 @@ function expandBrackets(line){
   }
   return [chords, lyrics];
 }
+function normSteps(n){ n = ((n % 12) + 12) % 12; return n > 6 ? n - 12 : n; }
+
+// The key the chart is written in: the key field if it's filled, otherwise
+// the first chord in the chart, which is right far more often than not.
+function sourceKey(s){
+  var typed = String(s.key || "").trim();
+  if(/^[A-G](#|b)?\s*(m|min|minor)?$/i.test(typed)) return tidyKey(typed);
+  var lines = String(s.chart || "").replace(/\r/g, "").split("\n");
+  for(var i = 0; i < lines.length; i++){
+    var pair = expandBrackets(lines[i]);
+    var L = pair ? pair[0] : lines[i];
+    if(!isChordLine(L)) continue;
+    var toks = L.trim().split(/\s+/).filter(function(t){ return /^[A-G]/.test(t); });
+    if(!toks.length) continue;
+    var m = toks[0].match(/^([A-G](?:#|b)?)(m(?!aj))?/);
+    if(m) return m[1] + (m[2] ? "m" : "");
+  }
+  return "";
+}
+function tidyKey(k){
+  var m = k.match(/^([A-G])(#|b)?\s*(m|min|minor)?$/i);
+  if(!m) return k;
+  return m[1].toUpperCase() + (m[2] || "") + (m[3] ? "m" : "");
+}
+function keyAt(key, steps){
+  var m = key.match(/^([A-G](?:#|b)?)(m)?$/);
+  if(!m) return "";
+  return shiftChord(m[1], steps) + (m[2] ? "m" : "");
+}
+function keyPicker(key, steps){
+  if(!key) return '<span id="tval">' + (steps === 0 ? "as written" : (steps > 0 ? "+" + steps : steps) + " semitones") + "</span>";
+  var html = '<select class="keysel" id="tkey" aria-label="Key to sing it in">';
+  for(var d = -5; d <= 6; d++){
+    var label = keyAt(key, d) + (d === 0 ? " (as written)" : "");
+    html += '<option value="' + d + '"' + (d === steps ? " selected" : "") + ">" + esc(label) + "</option>";
+  }
+  return html + "</select>";
+}
 function renderChart(text, steps){
   if(!text || !text.trim()) return "";
   var raw = text.replace(/\r/g,"").split("\n");
@@ -514,16 +559,24 @@ var sb = null, session = null, isMember = false, myName = "";
 
 function configured(){ return /^https:\/\//.test(SUPABASE_URL) && SUPABASE_ANON_KEY.length > 30; }
 
+function typesOf(s){ return (s && s.types && s.types.length) ? s.types : ["entrance"]; }
+function orderedTypes(s){ return TYPES.filter(function(t){ return typesOf(s).indexOf(t) !== -1; }); }
+function typeLabel(s){ return orderedTypes(s).join(" / "); }
+function ribbonFor(s){
+  return orderedTypes(s).map(function(t){ return '<span class="rib rib-' + t + '"></span>'; }).join("");
+}
+
 function rowToSong(r){
   return {
-    title: r.title, artist: r.artist || "", key: r.song_key || "", type: r.slot,
+    title: r.title, artist: r.artist || "", key: r.song_key || "",
+    types: (r.slots && r.slots.length ? r.slots : ["entrance"]),
     video: r.video || "", chart: r.chart || "", notes: r.notes || "",
     plays: (r.plays || []).slice().sort().reverse(), addedAt: r.added_at
   };
 }
 function songToRow(id, s){
   return {
-    id: id, title: s.title, artist: s.artist || "", song_key: s.key || "", slot: s.type,
+    id: id, title: s.title, artist: s.artist || "", song_key: s.key || "", slots: s.types,
     video: s.video || "", chart: s.chart || "", notes: s.notes || "", plays: s.plays || []
   };
 }
@@ -696,7 +749,7 @@ function candidates(type){
   var out = [];
   for(var id in songs){
     var s = songs[id];
-    if(s.type !== type) continue;
+    if(typesOf(s).indexOf(type) === -1) continue;
     if(!restState(s).ready) continue;
     out.push({id:id, s:s, score: avg(id)});
   }
@@ -744,7 +797,7 @@ function visibleSongs(){
   var needle = q.trim().toLowerCase();
   for(var id in songs){
     var s = songs[id];
-    if(typeFilter !== "all" && s.type !== typeFilter) continue;
+    if(typeFilter !== "all" && typesOf(s).indexOf(typeFilter) === -1) continue;
     if(readyOnly && !restState(s).ready) continue;
     if(needle){
       var hay = (s.title+" "+(s.artist||"")+" "+(s.chart||"")+" "+(s.notes||"")).toLowerCase();
@@ -806,12 +859,12 @@ function renderList(){
       var when = r.days === null
         ? "never sung"
         : (r.ready ? "sung " + relDays(r.days) : '<span class="resting">resting \u00b7 ready in ' + r.left + (r.left===1?" day":" days") + "</span>");
-      html += '<li class="song t-'+esc(s.type)+'">'
-        + '<span class="ribbon" aria-hidden="true"></span>'
+      html += '<li class="song">'
+        + '<span class="ribbon" aria-hidden="true">'+ribbonFor(s)+'</span>'
         + '<button class="song-btn" data-goto="'+esc(it.id)+'">'
         + '  <span class="song-main">'
         + '    <span class="song-title">'+esc(s.title)+'</span>'
-        + '    <span class="song-sub"><span class="song-slot">'+esc(s.type)+'</span>'
+        + '    <span class="song-sub"><span class="song-slot t-'+esc(orderedTypes(s)[0])+'">'+esc(typeLabel(s))+'</span>'
         +        (s.artist ? " \u00b7 " + esc(s.artist) : "") + " \u00b7 " + when + '</span>'
         + '  </span>'
         + '  <span class="song-right">'+starRow(a)
@@ -874,7 +927,7 @@ function renderDetail(id){
     + '<h2>'+esc(s.title)+'</h2>'
     + '<div class="byline">'+esc(s.artist || "Composer not noted")
     + (s.key ? " \u00b7 we sing it in " + esc(s.key) : "")
-    + ' \u00b7 <span class="song-slot t-'+esc(s.type)+'">'+esc(s.type)+'</span></div>'
+    + ' \u00b7 <span class="song-slot t-'+esc(orderedTypes(s)[0])+'">'+esc(typeLabel(s))+'</span></div>'
     + '<div class="verdict">'+starRow(a)
     + '<span class="score">'+(rs.length ? a.toFixed(1)+" from "+rs.length+(rs.length===1?" review":" reviews") : "No reviews yet")+'</span>'
     + (vid ? ' \u00b7 <a href="https://youtu.be/'+esc(vid)+'" target="_blank" rel="noopener">Open on YouTube</a>' : "")
@@ -893,9 +946,12 @@ function renderDetail(id){
   html += "</div>";
 
   html += '<section class="sect"><h3>Chords and lyrics'
-    + (s.chart && s.chart.trim() ? '<span class="transpose"><button class="tbtn" id="tdown" aria-label="Transpose down">\u2212</button>'
-        + '<span id="tval">'+(transpose===0 ? "as written" : (transpose>0?"+":"")+transpose)+'</span>'
-        + '<button class="tbtn" id="tup" aria-label="Transpose up">+</button></span>' : "")
+    + (s.chart && s.chart.trim() ? '<span class="transpose"><span class="tlab">Key</span>'
+        + '<button class="tbtn" id="tdown" aria-label="Down a half step">\u2212</button>'
+        + keyPicker(sourceKey(s), transpose)
+        + '<button class="tbtn" id="tup" aria-label="Up a half step">+</button>'
+        + (transpose !== 0 ? '<button class="linkish" id="treset">back to written</button>' : "")
+        + "</span>" : "")
     + "</h3>";
   if(s.chart && s.chart.trim()){
     html += '<div class="chart">'+renderChart(s.chart, transpose)+"</div>";
@@ -933,8 +989,10 @@ function renderDetail(id){
   main.innerHTML = html;
   bindBack();
 
-  if(el("tup")) el("tup").addEventListener("click", function(){ transpose = Math.min(11, transpose+1); renderDetail(id); });
-  if(el("tdown")) el("tdown").addEventListener("click", function(){ transpose = Math.max(-11, transpose-1); renderDetail(id); });
+  if(el("tup")) el("tup").addEventListener("click", function(){ transpose = normSteps(transpose + 1); renderDetail(id); });
+  if(el("tdown")) el("tdown").addEventListener("click", function(){ transpose = normSteps(transpose - 1); renderDetail(id); });
+  if(el("tkey")) el("tkey").addEventListener("change", function(){ transpose = parseInt(this.value, 10) || 0; renderDetail(id); });
+  if(el("treset")) el("treset").addEventListener("click", function(){ transpose = 0; renderDetail(id); });
 
   if(el("logPlay")) el("logPlay").addEventListener("click", function(){
     var d = el("playDate").value || todayISO();
@@ -992,7 +1050,8 @@ function openEditor(id){
   el("f_title").value = s ? s.title : "";
   el("f_artist").value = s ? (s.artist||"") : "";
   el("f_key").value = s ? (s.key||"") : "";
-  el("f_type").value = s ? s.type : (typeFilter !== "all" ? typeFilter : "entrance");
+  var picked = s ? typesOf(s) : (typeFilter !== "all" ? [typeFilter] : ["entrance"]);
+  TYPES.forEach(function(t){ el("f_" + t).checked = picked.indexOf(t) !== -1; });
   el("f_chart").value = s ? (s.chart||"") : "";
   el("f_notes").value = s ? (s.notes||"") : "";
   el("edDelete").hidden = !s;
@@ -1015,6 +1074,8 @@ el("editorForm").addEventListener("submit", function(ev){
   ev.preventDefault();
   var title = el("f_title").value.trim();
   if(!title){ el("edErr").textContent = "A song needs a title."; return; }
+  var chosen = TYPES.filter(function(t){ return el("f_" + t).checked; });
+  if(!chosen.length){ el("edErr").textContent = "Pick at least one place it can go."; return; }
   var link = el("f_video").value.trim();
   if(link && !videoId(link)){
     el("edErr").textContent = "That doesn't look like a YouTube link. Check it, or leave it blank for now.";
@@ -1025,7 +1086,7 @@ el("editorForm").addEventListener("submit", function(ev){
   base.title = title.slice(0,140);
   base.artist = el("f_artist").value.trim().slice(0,120);
   base.key = el("f_key").value.trim().slice(0,12);
-  base.type = el("f_type").value;
+  base.types = TYPES.filter(function(t){ return el("f_" + t).checked; });
   base.video = link;
   base.chart = el("f_chart").value.slice(0, 40000);
   base.notes = el("f_notes").value.trim().slice(0,300);
