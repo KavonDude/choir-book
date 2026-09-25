@@ -334,7 +334,7 @@ label.cb input{width:18px;height:18px;accent-color:var(--cloth)}
     <label class="f"><span>Title</span><input id="f_title" type="text" required autocomplete="off"></label>
     <div class="row2">
       <label class="f"><span>Composer or artist</span><input id="f_artist" type="text" autocomplete="off"></label>
-      <label class="f"><span>Key we sing it in</span><input id="f_key" type="text" placeholder="D" autocomplete="off"></label>
+      <label class="f"><span>Key we sing it in</span><input id="f_key" type="text" placeholder="D, or Em" autocomplete="off"></label>
     </div>
     <fieldset class="f slots">
       <legend>Where it can go in the Mass</legend>
@@ -370,7 +370,7 @@ var backend = null;
 var loaded = {songs:false, ratings:false};
 var view = {name:"list", id:null};
 var q = "", typeFilter = "all", readyOnly = false, sortBy = "rating";
-var boardIdx = 0, transpose = 0;
+var boardIdx = 0, transpose = null;
 var REST_DAYS = 21;
 var TYPES = ["entrance","communion","ending"];
 
@@ -486,11 +486,9 @@ function expandBrackets(line){
 }
 function normSteps(n){ n = ((n % 12) + 12) % 12; return n > 6 ? n - 12 : n; }
 
-// The key the chart is written in: the key field if it's filled, otherwise
-// the first chord in the chart, which is right far more often than not.
-function sourceKey(s){
-  var typed = String(s.key || "").trim();
-  if(/^[A-G](#|b)?\s*(m|min|minor)?$/i.test(typed)) return tidyKey(typed);
+// The key the chart is written in: read from its first chord, which is
+// right far more often than not.
+function writtenKey(s){
   var lines = String(s.chart || "").replace(/\r/g, "").split("\n");
   for(var i = 0; i < lines.length; i++){
     var pair = expandBrackets(lines[i]);
@@ -507,6 +505,21 @@ function tidyKey(k){
   var m = k.match(/^([A-G])(#|b)?\s*(m|min|minor)?$/i);
   if(!m) return k;
   return m[1].toUpperCase() + (m[2] || "") + (m[3] ? "m" : "");
+}
+function rootIndex(k){
+  var m = String(k).match(/^([A-G](?:#|b)?)/);
+  if(!m) return -1;
+  var i = SHARPS.indexOf(m[1]);
+  return i < 0 ? FLATS.indexOf(m[1]) : i;
+}
+// How far to shift the chart so it lands in the key the choir sings it in.
+function defaultSteps(s){
+  var written = writtenKey(s);
+  var ours = tidyKey(String(s.key || "").trim());
+  if(!written || !/^[A-G](#|b)?m?$/.test(ours)) return 0;
+  var a = rootIndex(written), b = rootIndex(ours);
+  if(a < 0 || b < 0) return 0;
+  return normSteps(b - a);
 }
 function keyAt(key, steps){
   var m = key.match(/^([A-G](?:#|b)?)(m)?$/);
@@ -905,6 +918,9 @@ function renderDetail(id){
   }
   var vid = videoId(s.video);
   var r = restState(s), a = avg(id), rs = songRatings(id);
+  var written = writtenKey(s);
+  var steps = (transpose === null) ? defaultSteps(s) : transpose;
+  var nowKey = written ? keyAt(written, steps) : "";
   var mine = null;
   for(var i=0;i<rs.length;i++){ if(rs[i].uid === uid) mine = rs[i]; }
   var plays = s.plays || [];
@@ -926,7 +942,7 @@ function renderDetail(id){
   html += '<div class="hero">'
     + '<h2>'+esc(s.title)+'</h2>'
     + '<div class="byline">'+esc(s.artist || "Composer not noted")
-    + (s.key ? " \u00b7 we sing it in " + esc(s.key) : "")
+    + (s.key ? " \u00b7 we sing it in " + esc(tidyKey(s.key)) : "")
     + ' \u00b7 <span class="song-slot t-'+esc(orderedTypes(s)[0])+'">'+esc(typeLabel(s))+'</span></div>'
     + '<div class="verdict">'+starRow(a)
     + '<span class="score">'+(rs.length ? a.toFixed(1)+" from "+rs.length+(rs.length===1?" review":" reviews") : "No reviews yet")+'</span>'
@@ -948,13 +964,15 @@ function renderDetail(id){
   html += '<section class="sect"><h3>Chords and lyrics'
     + (s.chart && s.chart.trim() ? '<span class="transpose"><span class="tlab">Key</span>'
         + '<button class="tbtn" id="tdown" aria-label="Down a half step">\u2212</button>'
-        + keyPicker(sourceKey(s), transpose)
+        + keyPicker(written, steps)
         + '<button class="tbtn" id="tup" aria-label="Up a half step">+</button>'
-        + (transpose !== 0 ? '<button class="linkish" id="treset">back to written</button>' : "")
+        + (written && steps !== 0 ? '<button class="linkish" id="treset">as written</button>' : "")
+        + (written && !readOnly && nowKey !== tidyKey(String(s.key || "").trim())
+            ? '<button class="linkish" id="tsave">make ' + esc(nowKey) + ' our key</button>' : "")
         + "</span>" : "")
     + "</h3>";
   if(s.chart && s.chart.trim()){
-    html += '<div class="chart">'+renderChart(s.chart, transpose)+"</div>";
+    html += '<div class="chart">'+renderChart(s.chart, steps)+"</div>";
   } else {
     html += '<p class="note">No chart yet. Open Edit and paste the chords and words your group already uses \u2014 chord lines above the lyrics, or bracket style like [D]Here I am.</p>';
   }
@@ -989,8 +1007,16 @@ function renderDetail(id){
   main.innerHTML = html;
   bindBack();
 
-  if(el("tup")) el("tup").addEventListener("click", function(){ transpose = normSteps(transpose + 1); renderDetail(id); });
-  if(el("tdown")) el("tdown").addEventListener("click", function(){ transpose = normSteps(transpose - 1); renderDetail(id); });
+  if(el("tup")) el("tup").addEventListener("click", function(){ transpose = normSteps(steps + 1); renderDetail(id); });
+  if(el("tdown")) el("tdown").addEventListener("click", function(){ transpose = normSteps(steps - 1); renderDetail(id); });
+  if(el("tsave")) el("tsave").addEventListener("click", function(){
+    var copy = JSON.parse(JSON.stringify(songs[id]));
+    copy.key = nowKey;
+    backend.saveSong(id, copy).then(function(){
+      transpose = null;
+      toast("Saved. It opens in " + nowKey + " for everyone now.");
+    }).catch(handleWriteFailure);
+  });
   if(el("tkey")) el("tkey").addEventListener("change", function(){ transpose = parseInt(this.value, 10) || 0; renderDetail(id); });
   if(el("treset")) el("treset").addEventListener("click", function(){ transpose = 0; renderDetail(id); });
 
@@ -1116,7 +1142,7 @@ function render(){
 window.addEventListener("hashchange", function(){
   var before = view.name + ":" + view.id;
   readHash();
-  if(before !== view.name + ":" + view.id) transpose = 0;
+  if(before !== view.name + ":" + view.id) transpose = null;
   render();
   window.scrollTo(0,0);
 });
